@@ -3,226 +3,218 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GradientPredict - AI Prediction Catalog</title>
+    <title>GradientPredict - AI Prediction Platform</title>
     <link rel="stylesheet" href="css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="app-container">
+    <div class="app">
         <!-- Header -->
         <header class="header">
-            <div class="header-left">
-                <div class="logo">
-                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                        <rect width="32" height="32" rx="8" fill="#40D1DB"/>
-                        <path d="M16 8L24 24H8L16 8Z" fill="white"/>
-                    </svg>
-                    <h1>GradientPredict</h1>
-                </div>
+            <div class="logo">
+                <div class="logo-icon">▲</div>
+                <h1>GradientPredict</h1>
             </div>
-            <div class="header-right">
-                <div class="wallet-status" id="walletStatus" style="display: none;">
-                    <span class="status-indicator connected">●</span>
-                    <span>Connected</span>
+            <div class="header-actions">
+                <div class="wallet-info" id="walletInfo" style="display: none;">
+                    <span class="wallet-status">● Connected</span>
+                    <span class="wallet-balance">$OPG <span id="balance">100.00</span></span>
                 </div>
-                <div class="wallet-balance" id="walletBalance" style="display: none;">
-                    <span class="wallet-icon">👛</span>
-                    <span class="balance-label">$OPG</span>
-                    <span class="balance-amount" id="opgBalance">0.00</span>
-                </div>
-                <button class="btn-connect" id="connectWalletBtn">Connect Wallet</button>
+                <button class="btn-connect" id="connectWallet">Connect Wallet</button>
             </div>
         </header>
 
-        <!-- Main Content -->
-        <div class="main-content">
-            <!-- Sidebar Navigation -->
+        <div class="content">
+            <!-- Sidebar -->
             <aside class="sidebar">
-                <!-- Crypto Category -->
-                <div class="chat-category active" data-category="crypto" id="category-crypto">
-                    <div class="category-header">
-                        <div class="category-icon">🪙</div>
-                        <div class="category-info">
+                <!-- Crypto Section -->
+                <div class="section" data-section="crypto">
+                    <div class="section-header" onclick="app.toggleSection('crypto')">
+                        <div class="section-icon">🪙</div>
+                        <div class="section-title">
                             <h3>Crypto Predictions</h3>
-                            <div class="category-tags">
-                                <span class="tag tag-buy">BUY</span>
-                                <span class="tag tag-hold">HOLD</span>
-                                <span class="tag tag-sell">SELL</span>
+                            <div class="tags">
+                                <span class="tag buy">BUY</span>
+                                <span class="tag hold">HOLD</span>
+                                <span class="tag sell">SELL</span>
                             </div>
                         </div>
+                        <div class="section-arrow">▼</div>
                     </div>
-                    <div class="asset-selector" id="cryptoSelector">
-                        <div class="asset-item selected" data-asset="BTC" data-symbol="bitcoin">
-                            <span class="asset-icon">₿</span>
-                            <span class="asset-name">Bitcoin</span>
-                            <span class="asset-price" id="price-BTC">Loading...</span>
-                        </div>
-                        <div class="asset-item" data-asset="ETH" data-symbol="ethereum">
-                            <span class="asset-icon">Ξ</span>
-                            <span class="asset-name">Ethereum</span>
-                            <span class="asset-price" id="price-ETH">Loading...</span>
-                        </div>
-                        <div class="asset-item" data-asset="SOL" data-symbol="solana">
-                            <span class="asset-icon">◎</span>
-                            <span class="asset-name">Solana</span>
-                            <span class="asset-price" id="price-SOL">Loading...</span>
-                        </div>
-                        <div class="asset-item" data-asset="BNB" data-symbol="binancecoin">
-                            <span class="asset-icon">B</span>
-                            <span class="asset-name">BNB</span>
-                            <span class="asset-price" id="price-BNB">Loading...</span>
-                        </div>
-                        <div class="asset-item" data-asset="XRP" data-symbol="ripple">
-                            <span class="asset-icon">X</span>
-                            <span class="asset-name">XRP</span>
-                            <span class="asset-price" id="price-XRP">Loading...</span>
+                    <div class="section-content active" id="crypto-content">
+                        <div class="asset-list">
+                            <div class="asset-item" data-asset="BTC" onclick="app.selectAsset('crypto', 'BTC')">
+                                <span class="asset-symbol">₿</span>
+                                <span class="asset-name">Bitcoin</span>
+                                <div class="asset-price" id="price-BTC">
+                                    <span class="price">Loading...</span>
+                                </div>
+                            </div>
+                            <div class="asset-item" data-asset="ETH" onclick="app.selectAsset('crypto', 'ETH')">
+                                <span class="asset-symbol">Ξ</span>
+                                <span class="asset-name">Ethereum</span>
+                                <div class="asset-price" id="price-ETH">
+                                    <span class="price">Loading...</span>
+                                </div>
+                            </div>
+                            <div class="asset-item" data-asset="SOL" onclick="app.selectAsset('crypto', 'SOL')">
+                                <span class="asset-symbol">◎</span>
+                                <span class="asset-name">Solana</span>
+                                <div class="asset-price" id="price-SOL">
+                                    <span class="price">Loading...</span>
+                                </div>
+                            </div>
+                            <div class="asset-item" data-asset="BNB" onclick="app.selectAsset('crypto', 'BNB')">
+                                <span class="asset-symbol">B</span>
+                                <span class="asset-name">BNB</span>
+                                <div class="asset-price" id="price-BNB">
+                                    <span class="price">Loading...</span>
+                                </div>
+                            </div>
+                            <div class="asset-item" data-asset="XRP" onclick="app.selectAsset('crypto', 'XRP')">
+                                <span class="asset-symbol">X</span>
+                                <span class="asset-name">XRP</span>
+                                <div class="asset-price" id="price-XRP">
+                                    <span class="price">Loading...</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Sports Category -->
-                <div class="chat-category" data-category="sports" id="category-sports">
-                    <div class="category-header">
-                        <div class="category-icon">⚽</div>
-                        <div class="category-info">
+                <!-- Sports Section -->
+                <div class="section" data-section="sports">
+                    <div class="section-header" onclick="app.toggleSection('sports')">
+                        <div class="section-icon">⚽</div>
+                        <div class="section-title">
                             <h3>Sports Predictions</h3>
                         </div>
+                        <div class="section-arrow">▼</div>
                     </div>
-                    <div class="sport-league-selector" id="sportSelector">
-                        <div class="league-section">
+                    <div class="section-content" id="sports-content">
+                        <div class="league-group">
                             <h4>⚽ Football</h4>
-                            <div class="team-item selected" data-match="Man City vs Real Madrid" data-league="UCL">
-                                <span class="team-name">Man City - Real Madrid</span>
-                                <span class="match-time">Today 20:00</span>
+                            <div class="match-item" onclick="app.selectMatch('Man City vs Real Madrid', 'UCL')">
+                                <div class="match-teams">Man City - Real Madrid</div>
+                                <div class="match-info">Champions League • Today 20:00</div>
                             </div>
-                            <div class="team-item" data-match="Arsenal vs Bayern" data-league="UCL">
-                                <span class="team-name">Arsenal - Bayern</span>
-                                <span class="match-time">Today 20:00</span>
+                            <div class="match-item" onclick="app.selectMatch('Arsenal vs Bayern', 'UCL')">
+                                <div class="match-teams">Arsenal - Bayern Munich</div>
+                                <div class="match-info">Champions League • Today 20:00</div>
                             </div>
-                            <div class="team-item" data-match="Liverpool vs Chelsea" data-league="EPL">
-                                <span class="team-name">Liverpool - Chelsea</span>
-                                <span class="match-time">Tomorrow 17:30</span>
-                            </div>
-                        </div>
-                        <div class="league-section">
-                            <h4>🏒 Hockey (NHL)</h4>
-                            <div class="team-item" data-match="Bruins vs Rangers" data-league="NHL">
-                                <span class="team-name">Bruins - Rangers</span>
-                                <span class="match-time">Today 19:00</span>
-                            </div>
-                            <div class="team-item" data-match="Maple Leafs vs Panthers" data-league="NHL">
-                                <span class="team-name">Maple Leafs - Panthers</span>
-                                <span class="match-time">Today 19:30</span>
+                            <div class="match-item" onclick="app.selectMatch('Liverpool vs Chelsea', 'EPL')">
+                                <div class="match-teams">Liverpool - Chelsea</div>
+                                <div class="match-info">Premier League • Tomorrow 17:30</div>
                             </div>
                         </div>
-                        <div class="league-section">
-                            <h4>🏀 Basketball (NBA)</h4>
-                            <div class="team-item" data-match="Lakers vs Warriors" data-league="NBA">
-                                <span class="team-name">Lakers - Warriors</span>
-                                <span class="match-time">Tomorrow 03:00</span>
-                            </div>
-                            <div class="team-item" data-match="Celtics vs Bucks" data-league="NBA">
-                                <span class="team-name">Celtics - Bucks</span>
-                                <span class="match-time">Tomorrow 00:30</span>
+                        <div class="league-group">
+                            <h4>🏒 NHL</h4>
+                            <div class="match-item" onclick="app.selectMatch('Bruins vs Rangers', 'NHL')">
+                                <div class="match-teams">Bruins - Rangers</div>
+                                <div class="match-info">NHL • Today 19:00</div>
                             </div>
                         </div>
-                        <div class="league-section">
-                            <h4>🎾 Tennis (ATP)</h4>
-                            <div class="team-item" data-match="Djokovic vs Alcaraz" data-league="ATP">
-                                <span class="team-name">Djokovic - Alcaraz</span>
-                                <span class="match-time">Today 14:00</span>
+                        <div class="league-group">
+                            <h4>🏀 NBA</h4>
+                            <div class="match-item" onclick="app.selectMatch('Lakers vs Warriors', 'NBA')">
+                                <div class="match-teams">Lakers - Warriors</div>
+                                <div class="match-info">NBA • Tomorrow 03:00</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Assets Category -->
-                <div class="chat-category" data-category="assets" id="category-assets">
-                    <div class="category-header">
-                        <div class="category-icon">📈</div>
-                        <div class="category-info">
+                <!-- Commodities Section -->
+                <div class="section" data-section="commodities">
+                    <div class="section-header" onclick="app.toggleSection('commodities')">
+                        <div class="section-icon">📈</div>
+                        <div class="section-title">
                             <h3>Assets & Commodities</h3>
                         </div>
+                        <div class="section-arrow">▼</div>
                     </div>
-                    <div class="asset-selector" id="commoditySelector">
-                        <div class="asset-item selected" data-asset="Gold" data-symbol="XAU">
-                            <span class="asset-icon">🥇</span>
-                            <span class="asset-name">Gold</span>
-                            <span class="asset-price" id="price-GOLD">Loading...</span>
-                        </div>
-                        <div class="asset-item" data-asset="Silver" data-symbol="XAG">
-                            <span class="asset-icon">🥈</span>
-                            <span class="asset-name">Silver</span>
-                            <span class="asset-price" id="price-SILVER">Loading...</span>
-                        </div>
-                        <div class="asset-item" data-asset="Oil" data-symbol="WTI">
-                            <span class="asset-icon">🛢</span>
-                            <span class="asset-name">Crude Oil (WTI)</span>
-                            <span class="asset-price" id="price-OIL">Loading...</span>
-                        </div>
-                        <div class="asset-item" data-asset="Gas" data-symbol="NG">
-                            <span class="asset-icon">🔥</span>
-                            <span class="asset-name">Natural Gas</span>
-                            <span class="asset-price" id="price-GAS">Loading...</span>
-                        </div>
-                        <div class="asset-item" data-asset="Copper" data-symbol="HG">
-                            <span class="asset-icon">🔧</span>
-                            <span class="asset-name">Copper</span>
-                            <span class="asset-price" id="price-COPPER">Loading...</span>
+                    <div class="section-content" id="commodities-content">
+                        <div class="asset-list">
+                            <div class="asset-item" data-asset="GOLD" onclick="app.selectAsset('commodities', 'GOLD')">
+                                <span class="asset-icon">🥇</span>
+                                <span class="asset-name">Gold</span>
+                                <div class="asset-price" id="price-GOLD">
+                                    <span class="price">Loading...</span>
+                                </div>
+                            </div>
+                            <div class="asset-item" data-asset="SILVER" onclick="app.selectAsset('commodities', 'SILVER')">
+                                <span class="asset-icon">🥈</span>
+                                <span class="asset-name">Silver</span>
+                                <div class="asset-price" id="price-SILVER">
+                                    <span class="price">Loading...</span>
+                                </div>
+                            </div>
+                            <div class="asset-item" data-asset="OIL" onclick="app.selectAsset('commodities', 'OIL')">
+                                <span class="asset-icon">🛢</span>
+                                <span class="asset-name">Crude Oil (WTI)</span>
+                                <div class="asset-price" id="price-OIL">
+                                    <span class="price">Loading...</span>
+                                </div>
+                            </div>
+                            <div class="asset-item" data-asset="GAS" onclick="app.selectAsset('commodities', 'GAS')">
+                                <span class="asset-icon">🔥</span>
+                                <span class="asset-name">Natural Gas</span>
+                                <div class="asset-price" id="price-GAS">
+                                    <span class="price">Loading...</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </aside>
 
-            <!-- Chat Area -->
-            <main class="chat-container">
-                <div class="chat-messages" id="chatMessages">
-                    <div class="message bot-message">
-                        <div class="message-avatar">
-                            <div class="avatar-gradient">
-                                <span>🤖</span>
-                            </div>
+            <!-- Main Chat Area -->
+            <main class="main">
+                <div class="chat-container" id="chatContainer">
+                    <div class="welcome-message">
+                        <div class="welcome-icon">🤖</div>
+                        <h2>Welcome to GradientPredict!</h2>
+                        <p>I'm your AI-powered prediction assistant. Get real-time analysis and forecasts.</p>
+                        
+                        <div class="quick-start">
+                            <h3>Quick Start:</h3>
+                            <ol>
+                                <li>Select a cryptocurrency, sports match, or commodity from the left</li>
+                                <li>Click <strong>"Get AI Prediction"</strong> button below</li>
+                                <li>Receive detailed analysis with real market data</li>
+                            </ol>
                         </div>
-                        <div class="message-content">
-                            <div class="message-bubble">
-                                <p>Hello! I'm your AI prediction assistant. Select an asset from the left and ask for a prediction!</p>
-                                <p style="margin-top: 10px;"><strong>Quick start:</strong></p>
-                                <ul style="margin-left: 20px; margin-top: 5px;">
-                                    <li>Click on Bitcoin, Ethereum, or any crypto</li>
-                                    <li>Select a sports match</li>
-                                    <li>Choose Gold, Oil, or other commodities</li>
-                                    <li>Click "Get Prediction" button</li>
-                                </ul>
-                            </div>
+
+                        <div class="examples">
+                            <h4>What you'll get:</h4>
+                            <ul>
+                                <li>📊 Real-time price data and 24h change</li>
+                                <li>🎯 BUY/HOLD/SELL recommendations</li>
+                                <li>📈 Confidence scores (0-100%)</li>
+                                <li>💡 Technical analysis & key levels</li>
+                                <li>⏱ Timeframe & price targets</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
 
-                <!-- Input Area -->
-                <div class="chat-input-container">
+                <div class="input-area">
+                    <button class="btn-predict" id="getPrediction" onclick="app.getPrediction()">
+                        📊 Get AI Prediction
+                    </button>
                     <div class="input-wrapper">
                         <input 
                             type="text" 
                             id="messageInput" 
-                            class="message-input" 
-                            placeholder="Ask for a prediction or click Get Prediction..."
-                            autocomplete="off"
+                            placeholder="Ask a question or click Get Prediction..."
+                            onkeypress="if(event.key==='Enter') app.sendMessage()"
                         />
-                        <button class="btn-send" id="sendBtn">
-                            <span>→</span>
-                            <span>Send</span>
-                        </button>
+                        <button class="btn-send" onclick="app.sendMessage()">Send</button>
                     </div>
-                    <button class="btn-prediction" id="predictionBtn">
-                        📊 Get AI Prediction
-                    </button>
-                    <div class="model-selector">
-                        <select id="modelSelect" class="model-select">
-                            <option value="gpt-4o">Model: GPT-4o</option>
-                            <option value="claude-3.5">Claude 3.5</option>
-                            <option value="llama-3-finance">Llama-3-Finance</option>
-                        </select>
-                    </div>
+                    <select class="model-select" id="modelSelect">
+                        <option value="gpt-4o">GPT-4o</option>
+                        <option value="claude-3.5">Claude 3.5</option>
+                        <option value="llama-3">Llama-3-Finance</option>
+                    </select>
                 </div>
             </main>
         </div>
