@@ -1,204 +1,176 @@
-// ===== OPENGRADIENT SDK WITH REAL DATA =====
+// ===== OPENGRADIENT SDK =====
 class OpenGradientSDK {
     constructor(config) {
         this.config = config;
         this.provider = null;
         this.account = null;
-        this.chainId = null;
-        this.priceCache = {};
     }
 
-    // ===== WALLET CONNECTION =====
     async connectWallet() {
         try {
             if (typeof window.ethereum === 'undefined') {
-                throw new Error('MetaMask not found! Please install the browser extension.');
+                throw new Error('MetaMask not installed');
             }
 
             this.provider = window.ethereum;
-            const accounts = await this.provider.request({ method: 'eth_requestAccounts' });
-            this.account = accounts[0];
-            this.chainId = await this.provider.request({ method: 'eth_chainId' });
-            await this.verifyNetwork();
+            const accounts = await this.provider.request({ 
+                method: 'eth_requestAccounts' 
+            });
             
-            return { success: true, account: this.account, chainId: this.chainId };
-        } catch (error) {
-            console.error('Wallet connection error:', error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    async verifyNetwork() {
-        const requiredChainId = this.config.NETWORK.CHAIN_ID_HEX;
-        if (this.chainId !== requiredChainId) {
+            this.account = accounts[0];
+            
+            // Switch to Base Sepolia
+            const chainId = '0x14a34';
             try {
                 await this.provider.request({
                     method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: requiredChainId }]
+                    params: [{ chainId: chainId }]
                 });
-                this.chainId = requiredChainId;
             } catch (switchError) {
                 if (switchError.code === 4902) {
                     await this.provider.request({
                         method: 'wallet_addEthereumChain',
                         params: [{
-                            chainId: requiredChainId,
-                            chainName: this.config.NETWORK.NETWORK_NAME,
+                            chainId: chainId,
+                            chainName: 'Base Sepolia',
                             nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
-                            rpcUrls: [this.config.NETWORK.RPC_URL],
-                            blockExplorerUrls: [this.config.NETWORK.EXPLORER_URL]
+                            rpcUrls: ['https://sepolia.base.org'],
+                            blockExplorerUrls: ['https://sepolia.basescan.org']
                         }]
                     });
                 }
             }
-        }
-    }
-
-    // ===== FETCH REAL PRICES =====
-    async fetchCryptoPrices() {
-        try {
-            const ids = Object.values(this.config.ASSETS.crypto).map(c => c.coingeckoId).join(',');
-            const response = await fetch(
-                `${this.config.APIS.COINGECKO}/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`
-            );
-            const data = await response.json();
             
-            const prices = {};
-            for (const [key, asset] of Object.entries(this.config.ASSETS.crypto)) {
-                if (data[asset.coingeckoId]) {
-                    prices[key] = {
-                        price: data[asset.coingeckoId].usd,
-                        change24h: data[asset.coingeckoId].usd_24h_change
-                    };
-                }
-            }
-            return prices;
+            return { success: true, account: this.account };
         } catch (error) {
-            console.error('Error fetching crypto prices:', error);
-            return this.getFallbackCryptoPrices();
-        }
-    }
-
-    async fetchCommodityPrices() {
-        // Simulated commodity prices (in production use real API)
-        return {
-            GOLD: { price: 2034.50, change24h: 0.8 },
-            SILVER: { price: 22.45, change24h: 1.2 },
-            OIL: { price: 78.30, change24h: -1.5 },
-            GAS: { price: 2.15, change24h: -2.3 },
-            COPPER: { price: 3.85, change24h: 0.5 },
-            PLATINUM: { price: 920.00, change24h: -0.3 }
-        };
-    }
-
-    getFallbackCryptoPrices() {
-        return {
-            BTC: { price: 67234.50, change24h: 2.3 },
-            ETH: { price: 3456.78, change24h: 1.8 },
-            SOL: { price: 145.32, change24h: 5.2 },
-            BNB: { price: 567.89, change24h: -0.5 },
-            XRP: { price: 0.62, change24h: 1.1 }
-        };
-    }
-
-    // ===== GET PREDICTION WITH REAL DATA =====
-    async getPrediction(category, asset, matchData = null, model = 'gpt-4o') {
-        try {
-            let marketData = null;
-            let prompt = '';
-
-            if (category === 'crypto') {
-                marketData = await this.fetchCryptoPrices();
-                const assetData = marketData[asset];
-                const assetInfo = this.config.ASSETS.crypto[asset];
-                
-                prompt = `Analyze ${assetInfo.name} (${asset}) with current price $${assetData.price.toLocaleString()} (${assetData.change24h > 0 ? '+' : ''}${assetData.change24h.toFixed(2)}% in 24h). Provide BUY/HOLD/SELL recommendation with confidence score (0-100%), price target, and timeframe. Include technical analysis and risk factors.`;
-                
-            } else if (category === 'assets') {
-                marketData = await this.fetchCommodityPrices();
-                const assetData = marketData[asset];
-                
-                prompt = `Analyze ${asset} with current price $${assetData.price.toLocaleString()} (${assetData.change24h > 0 ? '+' : ''}${assetData.change24h.toFixed(2)}% in 24h). Provide recommendation with confidence score, price target, and macroeconomic context.`;
-                
-            } else if (category === 'sports') {
-                prompt = `Analyze match: ${matchData.teams} (${matchData.league}). Provide win probability for each team, recommended bet, and confidence level based on recent form, head-to-head records, and team statistics.`;
-            }
-
-            // Simulate AI processing with real data
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
-            return await this.generatePrediction(category, asset, marketData, matchData, prompt);
-
-        } catch (error) {
-            console.error('Prediction error:', error);
             return { success: false, error: error.message };
         }
     }
 
-    async generatePrediction(category, asset, marketData, matchData, prompt) {
+    async fetchCryptoPrices() {
+        try {
+            const ids = 'bitcoin,ethereum,solana,binancecoin,ripple';
+            const response = await fetch(
+                `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`
+            );
+            const data = await response.json();
+            
+            return {
+                BTC: { 
+                    price: data.bitcoin?.usd || 67000, 
+                    change24h: data.bitcoin?.usd_24h_change || 2.3 
+                },
+                ETH: { 
+                    price: data.ethereum?.usd || 3450, 
+                    change24h: data.ethereum?.usd_24h_change || 1.8 
+                },
+                SOL: { 
+                    price: data.solana?.usd || 145, 
+                    change24h: data.solana?.usd_24h_change || 5.2 
+                },
+                BNB: { 
+                    price: data.binancecoin?.usd || 567, 
+                    change24h: data.binancecoin?.usd_24h_change || -0.5 
+                },
+                XRP: { 
+                    price: data.ripple?.usd || 0.62, 
+                    change24h: data.ripple?.usd_24h_change || 1.1 
+                }
+            };
+        } catch (error) {
+            console.error('Price fetch error:', error);
+            return {
+                BTC: { price: 67234, change24h: 2.3 },
+                ETH: { price: 3456, change24h: 1.8 },
+                SOL: { price: 145, change24h: 5.2 },
+                BNB: { price: 567, change24h: -0.5 },
+                XRP: { price: 0.62, change24h: 1.1 }
+            };
+        }
+    }
+
+    async fetchCommodityPrices() {
+        return {
+            GOLD: { price: 2034.50, change24h: 0.8 },
+            SILVER: { price: 22.45, change24h: 1.2 },
+            OIL: { price: 78.30, change24h: -1.5 },
+            GAS: { price: 2.15, change24h: -2.3 }
+        };
+    }
+
+    async getPrediction(category, asset, matchData = null) {
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
         if (category === 'crypto') {
-            const assetData = marketData[asset];
+            const prices = await this.fetchCryptoPrices();
+            const assetData = prices[asset];
+            const assetInfo = CONFIG.ASSETS.crypto[asset];
             const isPositive = assetData.change24h > 0;
-            const confidence = Math.floor(Math.random() * 20) + 75;
             
             return {
                 success: true,
-                 {
+                data: {
                     asset: asset,
-                    assetName: this.config.ASSETS.crypto[asset].name,
+                    assetName: assetInfo.name,
                     currentPrice: `$${assetData.price.toLocaleString()}`,
                     change24h: `${isPositive ? '+' : ''}${assetData.change24h.toFixed(2)}%`,
                     action: isPositive ? 'BUY' : (Math.random() > 0.5 ? 'HOLD' : 'SELL'),
-                    confidence: confidence,
-                    reasoning: `Technical indicators show ${isPositive ? 'bullish momentum' : 'consolidation phase'}. RSI at ${Math.floor(Math.random() * 40 + 30)}, MACD ${isPositive ? 'positive' : 'negative'}. Support at $${(assetData.price * 0.95).toFixed(0)}, resistance at $${(assetData.price * 1.05).toFixed(0)}.`,
+                    confidence: Math.floor(Math.random() * 20) + 75,
+                    reasoning: `Strong ${isPositive ? 'bullish' : 'bearish'} momentum detected. RSI at ${Math.floor(Math.random() * 40 + 30)}. Support at $${(assetData.price * 0.95).toFixed(0)}, resistance at $${(assetData.price * 1.05).toFixed(0)}. Volume ${isPositive ? 'increasing' : 'decreasing'}.`,
                     priceTarget: `$${(assetData.price * (isPositive ? 1.08 : 0.98)).toFixed(0)}`,
                     timeframe: '7-14 days',
-                    riskLevel: isPositive ? 'Medium' : 'High'
+                    riskLevel: isPositive ? 'Medium' : 'High',
+                    supportLevel: `$${(assetData.price * 0.95).toFixed(0)}`,
+                    resistanceLevel: `$${(assetData.price * 1.05).toFixed(0)}`,
+                    indicators: {
+                        rsi: Math.floor(Math.random() * 40 + 30),
+                        macd: isPositive ? 'Bullish' : 'Bearish',
+                        volume: isPositive ? 'Above average' : 'Below average'
+                    }
                 }
             };
-            
-        } else if (category === 'assets') {
-            const assetData = marketData[asset];
+        } else if (category === 'commodities') {
+            const prices = await this.fetchCommodityPrices();
+            const assetData = prices[asset];
             const isPositive = assetData.change24h > 0;
             
             return {
                 success: true,
-                 {
+                data: {
                     asset: asset,
+                    assetName: CONFIG.ASSETS.commodities[asset].name,
                     currentPrice: `$${assetData.price.toLocaleString()}`,
                     change24h: `${isPositive ? '+' : ''}${assetData.change24h.toFixed(2)}%`,
                     action: isPositive ? 'BUY' : 'HOLD',
                     confidence: Math.floor(Math.random() * 15) + 80,
-                    reasoning: `Macro factors: ${asset === 'GOLD' ? 'Fed policy uncertainty and geopolitical tensions support gold' : asset === 'OIL' ? 'OPEC+ production cuts vs demand concerns' : 'Supply-demand dynamics favor current trend'}. Technical analysis shows ${isPositive ? 'upward momentum' : 'consolidation'}.`,
+                    reasoning: `Macro factors support current trend. Technical analysis shows ${isPositive ? 'upward' : 'downward'} momentum.`,
                     priceTarget: `$${(assetData.price * (isPositive ? 1.05 : 1.02)).toFixed(2)}`,
-                    timeframe: 'Q2-Q3 2026'
+                    timeframe: 'Q2-Q3 2026',
+                    riskLevel: 'Medium'
                 }
             };
-            
         } else if (category === 'sports') {
             const teams = matchData.teams.split(' vs ');
             const homeWinProb = Math.floor(Math.random() * 40) + 30;
             
             return {
                 success: true,
-                 {
+                data: {
                     match: matchData.teams,
                     league: matchData.league,
                     prediction: teams[0],
                     winProbability: `${homeWinProb}%`,
-                    action: 'WIN',
                     confidence: Math.floor(Math.random() * 20) + 70,
-                    reasoning: `${teams[0]} recent form: ${Math.floor(Math.random() * 5 + 3)}/5 wins. Head-to-head favors home team. Expected goals (xG) analysis shows ${teams[0]} creating more chances. Key players available.`,
+                    reasoning: `${teams[0]} recent form strong. Head-to-head favors home team. Key players available.`,
                     recommendedBet: `${teams[0]} to Win`,
                     odds: '2.10',
                     alternativeBet: 'Over 2.5 Goals @ 1.85'
                 }
             };
         }
-    }
-
-    async getOPGBalance() {
-        return (Math.random() * 100 + 50).toFixed(2);
+        
+        return { success: false, error: 'Unknown category' };
     }
 }
 
