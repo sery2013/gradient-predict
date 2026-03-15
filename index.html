@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -21,11 +21,11 @@
                 </div>
             </div>
             <div class="header-right">
-                <div class="wallet-status">
+                <div class="wallet-status" id="walletStatus" style="display: none;">
                     <span class="status-indicator connected">●</span>
                     <span>Connected</span>
                 </div>
-                <div class="wallet-balance">
+                <div class="wallet-balance" id="walletBalance" style="display: none;">
                     <span class="wallet-icon">👛</span>
                     <span class="balance-label">$OPG</span>
                     <span class="balance-amount" id="opgBalance">0.00</span>
@@ -38,7 +38,7 @@
         <div class="main-content">
             <!-- Sidebar Navigation -->
             <aside class="sidebar">
-                <div class="chat-category active" data-category="crypto">
+                <div class="chat-category active" data-category="crypto" id="category-crypto">
                     <div class="category-icon">🪙</div>
                     <div class="category-info">
                         <h3>Crypto Predictions</h3>
@@ -49,13 +49,13 @@
                         </div>
                     </div>
                     <div class="crypto-icons">
-                        <span class="crypto-icon bitcoin">₿</span>
-                        <span class="crypto-icon ethereum">Ξ</span>
-                        <span class="crypto-icon solstice">◎</span>
+                        <span class="crypto-icon">₿</span>
+                        <span class="crypto-icon">Ξ</span>
+                        <span class="crypto-icon">◎</span>
                     </div>
                 </div>
 
-                <div class="chat-category" data-category="sports">
+                <div class="chat-category" data-category="sports" id="category-sports">
                     <div class="category-icon">⚽</div>
                     <div class="category-info">
                         <h3>Sports Predictions</h3>
@@ -74,7 +74,7 @@
                     </div>
                 </div>
 
-                <div class="chat-category" data-category="assets">
+                <div class="chat-category" data-category="assets" id="category-assets">
                     <div class="category-icon">📈</div>
                     <div class="category-info">
                         <h3>Assets & Commodities</h3>
@@ -95,7 +95,6 @@
             <!-- Chat Area -->
             <main class="chat-container">
                 <div class="chat-messages" id="chatMessages">
-                    <!-- Welcome Message -->
                     <div class="message bot-message">
                         <div class="message-avatar">
                             <div class="avatar-gradient">
@@ -104,12 +103,12 @@
                         </div>
                         <div class="message-content">
                             <div class="message-bubble">
-                                <p>Привет! Я ваш AI-помощник для прогнозирования. Выберите категорию слева и задайте вопрос!</p>
-                                <p style="margin-top: 10px;"><strong>Примеры вопросов:</strong></p>
+                                <p>Hello! I'm your AI prediction assistant. Select a category from the left and ask your question!</p>
+                                <p style="margin-top: 10px;"><strong>Example questions:</strong></p>
                                 <ul style="margin-left: 20px; margin-top: 5px;">
-                                    <li>Что лучше купить: BTC или ETH?</li>
-                                    <li>Кто выиграет Ман Сити - Реал?</li>
-                                    <li>Прогноз цены золота на Q3</li>
+                                    <li>Should I buy BTC or ETH?</li>
+                                    <li>Who will win: Man City vs Real Madrid?</li>
+                                    <li>Gold price forecast for Q3</li>
                                 </ul>
                             </div>
                         </div>
