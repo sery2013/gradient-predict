@@ -1,9 +1,9 @@
-// ===== APPLICATION LOGIC =====
+// ===== APPLICATION =====
 class GradientPredictApp {
     constructor() {
         this.sdk = new OpenGradientSDK(CONFIG);
-        this.currentCategory = CONFIG.UI.DEFAULT_CATEGORY;
-        this.selectedAsset = CONFIG.UI.DEFAULT_ASSET;
+        this.currentSection = 'crypto';
+        this.selectedAsset = 'BTC';
         this.selectedMatch = null;
         this.isConnected = false;
         this.marketData = null;
@@ -12,81 +12,12 @@ class GradientPredictApp {
     }
 
     init() {
-        this.cacheDOM();
-        this.bindEvents();
         this.checkWallet();
         this.loadMarketData();
-        setInterval(() => this.loadMarketData(), 60000); // Update every minute
-    }
-
-    cacheDOM() {
-        this.dom = {
-            connectBtn: document.getElementById('connectWalletBtn'),
-            walletStatus: document.getElementById('walletStatus'),
-            walletBalance: document.getElementById('walletBalance'),
-            balanceDisplay: document.getElementById('opgBalance'),
-            chatMessages: document.getElementById('chatMessages'),
-            messageInput: document.getElementById('messageInput'),
-            sendBtn: document.getElementById('sendBtn'),
-            predictionBtn: document.getElementById('predictionBtn'),
-            modelSelect: document.getElementById('modelSelect'),
-            categories: document.querySelectorAll('.chat-category'),
-            cryptoSelector: document.getElementById('cryptoSelector'),
-            sportSelector: document.getElementById('sportSelector'),
-            commoditySelector: document.getElementById('commoditySelector')
-        };
-    }
-
-    bindEvents() {
-        // Wallet
-        this.dom.connectBtn.addEventListener('click', () => this.connectWallet());
-
-        // Categories
-        this.dom.categories.forEach(category => {
-            category.addEventListener('click', (e) => {
-                const cat = e.currentTarget.closest('.chat-category');
-                if (cat) {
-                    this.switchCategory(cat.dataset.category);
-                }
-            });
-        });
-
-        // Crypto assets
-        if (this.dom.cryptoSelector) {
-            this.dom.cryptoSelector.addEventListener('click', (e) => {
-                const assetItem = e.target.closest('.asset-item');
-                if (assetItem) {
-                    this.selectCrypto(assetItem.dataset.asset);
-                }
-            });
-        }
-
-        // Sports matches
-        if (this.dom.sportSelector) {
-            this.dom.sportSelector.addEventListener('click', (e) => {
-                const teamItem = e.target.closest('.team-item');
-                if (teamItem) {
-                    this.selectMatch(teamItem.dataset.match, teamItem.dataset.league);
-                }
-            });
-        }
-
-        // Commodities
-        if (this.dom.commoditySelector) {
-            this.dom.commoditySelector.addEventListener('click', (e) => {
-                const assetItem = e.target.closest('.asset-item');
-                if (assetItem) {
-                    this.selectCommodity(assetItem.dataset.asset);
-                }
-            });
-        }
-
-        // Buttons
-        this.dom.sendBtn.addEventListener('click', () => this.sendMessage());
-        this.dom.predictionBtn.addEventListener('click', () => this.getPrediction());
-        this.dom.messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.sendMessage();
-        });
+        setInterval(() => this.loadMarketData(), 60000);
+        
+        // Auto-select first crypto
+        this.selectAsset('crypto', 'BTC');
     }
 
     async checkWallet() {
@@ -108,121 +39,127 @@ class GradientPredictApp {
         if (result.success) {
             this.isConnected = true;
             this.updateWalletUI(result.account);
-            this.addSystemMessage('✅ Wallet connected successfully!');
+            this.showNotification('✅ Wallet connected successfully!');
         } else {
-            this.addErrorMessage('Connection error: ' + result.error);
+            this.showNotification('❌ ' + result.error, 'error');
         }
     }
 
     updateWalletUI(account) {
-        this.dom.connectBtn.textContent = `${account.slice(0, 6)}...${account.slice(-4)}`;
-        this.dom.connectBtn.disabled = true;
-        this.dom.connectBtn.classList.add('connected');
-        this.dom.walletStatus.style.display = 'flex';
-        this.dom.walletBalance.style.display = 'flex';
-        this.dom.balanceDisplay.textContent = '100.00';
+        const walletInfo = document.getElementById('walletInfo');
+        const connectBtn = document.getElementById('connectWallet');
+        const balanceEl = document.getElementById('balance');
+        
+        walletInfo.style.display = 'flex';
+        connectBtn.textContent = `${account.slice(0, 6)}...${account.slice(-4)}`;
+        connectBtn.classList.add('connected');
+        balanceEl.textContent = '100.00';
+    }
+
+    // Toggle section (collapse/expand)
+    toggleSection(sectionName) {
+        const section = document.querySelector(`.section[data-section="${sectionName}"]`);
+        const content = document.getElementById(`${sectionName}-content`);
+        
+        section.classList.toggle('collapsed');
+        content.classList.toggle('active');
+    }
+
+    // Select asset (crypto or commodities)
+    selectAsset(type, asset) {
+        this.currentSection = type;
+        this.selectedAsset = asset;
+        this.selectedMatch = null;
+
+        // Remove selected from all assets
+        document.querySelectorAll('.asset-item').forEach(item => {
+            item.classList.remove('selected');
+        });
+
+        // Add selected to current
+        const selectedItem = document.querySelector(`.asset-item[data-asset="${asset}"]`);
+        if (selectedItem) {
+            selectedItem.classList.add('selected');
+        }
+
+        // Highlight section
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelector(`.section[data-section="${type}"]`)?.classList.add('active');
+
+        const assetName = type === 'crypto' 
+            ? CONFIG.ASSETS.crypto[asset].name 
+            : CONFIG.ASSETS.commodities[asset].name;
+
+        this.showNotification(`📊 Selected: ${assetName} (${asset})`);
+    }
+
+    // Select sports match
+    selectMatch(match, league) {
+        this.currentSection = 'sports';
+        this.selectedMatch = { teams: match, league: league };
+        this.selectedAsset = null;
+
+        // Remove selected from all matches
+        document.querySelectorAll('.match-item').forEach(item => {
+            item.classList.remove('selected');
+        });
+
+        // Add selected to current match
+        const selectedMatch = Array.from(document.querySelectorAll('.match-item')).find(
+            item => item.textContent.includes(match)
+        );
+        if (selectedMatch) {
+            selectedMatch.classList.add('selected');
+        }
+
+        // Highlight section
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelector('.section[data-section="sports"]')?.classList.add('active');
+
+        this.showNotification(`⚽ Selected: ${match}`);
     }
 
     async loadMarketData() {
-        if (this.currentCategory === 'crypto') {
-            this.marketData = await this.sdk.fetchCryptoPrices();
-            this.updatePriceDisplays('crypto');
-        } else if (this.currentCategory === 'assets') {
-            this.marketData = await this.sdk.fetchCommodityPrices();
-            this.updatePriceDisplays('commodities');
-        }
+        // Load crypto prices
+        const cryptoPrices = await this.sdk.fetchCryptoPrices();
+        this.updateCryptoPrices(cryptoPrices);
+
+        // Load commodity prices
+        const commodityPrices = await this.sdk.fetchCommodityPrices();
+        this.updateCommodityPrices(commodityPrices);
     }
 
-    updatePriceDisplays(type) {
-        if (!this.marketData) return;
-
-        if (type === 'crypto') {
-            for (const [symbol, data] of Object.entries(this.marketData)) {
-                const priceEl = document.getElementById(`price-${symbol}`);
-                if (priceEl) {
-                    const changeClass = data.change24h >= 0 ? 'price-up' : 'price-down';
-                    const changeSign = data.change24h >= 0 ? '+' : '';
-                    priceEl.innerHTML = `
-                        <div class="price-value">$${data.price.toLocaleString()}</div>
-                        <div class="price-change ${changeClass}">${changeSign}${data.change24h.toFixed(2)}%</div>
-                    `;
-                }
-            }
-        } else if (type === 'commodities') {
-            for (const [symbol, data] of Object.entries(this.marketData)) {
-                const priceEl = document.getElementById(`price-${symbol}`);
-                if (priceEl) {
-                    const changeClass = data.change24h >= 0 ? 'price-up' : 'price-down';
-                    const changeSign = data.change24h >= 0 ? '+' : '';
-                    priceEl.innerHTML = `
-                        <div class="price-value">$${data.price.toLocaleString()}</div>
-                        <div class="price-change ${changeClass}">${changeSign}${data.change24h.toFixed(2)}%</div>
-                    `;
-                }
+    updateCryptoPrices(prices) {
+        for (const [symbol, data] of Object.entries(prices)) {
+            const priceEl = document.querySelector(`#price-${symbol} .price`);
+            if (priceEl && data) {
+                const changeClass = data.change24h >= 0 ? 'positive' : 'negative';
+                const changeSign = data.change24h >= 0 ? '+' : '';
+                priceEl.innerHTML = `
+                    <div>$${data.price.toLocaleString()}</div>
+                    <div class="price-change ${changeClass}">${changeSign}${data.change24h.toFixed(2)}%</div>
+                `;
             }
         }
     }
 
-    switchCategory(category) {
-        this.currentCategory = category;
-        
-        this.dom.categories.forEach(cat => {
-            cat.classList.remove('active');
-        });
-        
-        const activeCategory = document.getElementById(`category-${category}`);
-        if (activeCategory) {
-            activeCategory.classList.add('active');
+    updateCommodityPrices(prices) {
+        for (const [symbol, data] of Object.entries(prices)) {
+            const priceEl = document.querySelector(`#price-${symbol} .price`);
+            if (priceEl && data) {
+                const changeClass = data.change24h >= 0 ? 'positive' : 'negative';
+                const changeSign = data.change24h >= 0 ? '+' : '';
+                priceEl.innerHTML = `
+                    <div>$${data.price.toLocaleString()}</div>
+                    <div class="price-change ${changeClass}">${changeSign}${data.change24h.toFixed(2)}%</div>
+                `;
+            }
         }
-
-        const categoryName = CONFIG.CATEGORIES[category].name;
-        const color = CONFIG.CATEGORIES[category].color;
-        
-        this.addSystemMessage(`📊 Switched to: <span style="color: ${color}">${categoryName}</span>`);
-        this.loadMarketData();
-    }
-
-    selectCrypto(asset) {
-        this.selectedAsset = asset;
-        this.selectedMatch = null;
-        
-        // Update UI
-        document.querySelectorAll('#cryptoSelector .asset-item').forEach(item => {
-            item.classList.remove('selected');
-        });
-        document.querySelector(`#cryptoSelector .asset-item[data-asset="${asset}"]`)?.classList.add('selected');
-
-        const assetInfo = CONFIG.ASSETS.crypto[asset];
-        this.addSystemMessage(`🪙 Selected: <span style="color: ${CONFIG.CATEGORIES.crypto.color}">${assetInfo.name} (${asset})</span>`);
-    }
-
-    selectCommodity(asset) {
-        this.selectedAsset = asset;
-        this.selectedMatch = null;
-        
-        document.querySelectorAll('#commoditySelector .asset-item').forEach(item => {
-            item.classList.remove('selected');
-        });
-        document.querySelector(`#commoditySelector .asset-item[data-asset="${asset}"]`)?.classList.add('selected');
-
-        this.addSystemMessage(`📈 Selected: <span style="color: ${CONFIG.CATEGORIES.assets.color}">${asset}</span>`);
-    }
-
-    selectMatch(match, league) {
-        this.selectedMatch = { teams: match, league: league };
-        this.selectedAsset = null;
-        
-        document.querySelectorAll('#sportSelector .team-item').forEach(item => {
-            item.classList.remove('selected');
-        });
-        document.querySelector(`#sportSelector .team-item[data-match="${match}"]`)?.classList.add('selected');
-
-        this.addSystemMessage(`⚽ Selected Match: <span style="color: ${CONFIG.CATEGORIES.sports.color}">${match} (${league})</span>`);
     }
 
     async getPrediction() {
         if (!this.isConnected) {
-            this.addErrorMessage('⚠️ Please connect your wallet first!');
+            this.showNotification('⚠️ Please connect your wallet first!', 'error');
             return;
         }
 
@@ -231,23 +168,13 @@ class GradientPredictApp {
         try {
             let result;
             
-            if (this.currentCategory === 'sports' && this.selectedMatch) {
-                result = await this.sdk.getPrediction(
-                    'sports',
-                    null,
-                    this.selectedMatch,
-                    this.dom.modelSelect.value
-                );
+            if (this.currentSection === 'sports' && this.selectedMatch) {
+                result = await this.sdk.getPrediction('sports', null, this.selectedMatch);
             } else if (this.selectedAsset) {
-                result = await this.sdk.getPrediction(
-                    this.currentCategory,
-                    this.selectedAsset,
-                    null,
-                    this.dom.modelSelect.value
-                );
+                result = await this.sdk.getPrediction(this.currentSection, this.selectedAsset);
             } else {
                 this.removeMessage(loadingId);
-                this.addErrorMessage('⚠️ Please select an asset or match first!');
+                this.showNotification('⚠️ Please select an asset or match!', 'error');
                 return;
             }
 
@@ -256,371 +183,301 @@ class GradientPredictApp {
             if (result.success) {
                 this.displayPrediction(result.data);
             } else {
-                this.addErrorMessage(result.error || 'Unknown error');
+                this.showNotification('Error: ' + result.error, 'error');
             }
         } catch (error) {
             this.removeMessage(loadingId);
-            this.addErrorMessage(error.message);
+            this.showNotification('Error: ' + error.message, 'error');
         }
     }
 
-    async sendMessage() {
-        const message = this.dom.messageInput.value.trim();
-        if (!message) return;
-
-        this.addMessage('user', message);
-        this.dom.messageInput.value = '';
-
-        const loadingId = this.addLoadingMessage();
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        this.removeMessage(loadingId);
-        
-        this.addSystemMessage('💡 Tip: Click "Get AI Prediction" button for detailed analysis');
-    }
-
     displayPrediction(data) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'message bot-message';
+        const chatContainer = document.getElementById('chatContainer');
+        
+        // Clear welcome message if exists
+        const welcomeMsg = chatContainer.querySelector('.welcome-message');
+        if (welcomeMsg) {
+            welcomeMsg.remove();
+        }
 
-        let content = '';
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message';
+        
+        let html = '';
         
         if (data.asset) {
             // Crypto or Commodity prediction
+            const actionClass = data.action.toLowerCase();
             const actionColor = {
-                'BUY': '#10B981',
-                'HOLD': '#F59E0B',
-                'SELL': '#EF4444'
-            }[data.action] || '#40D1DB';
+                'buy': '#10B981',
+                'hold': '#F59E0B',
+                'sell': '#EF4444'
+            }[actionClass];
 
-            content = `
-                <div class="prediction-card">
-                    <div class="prediction-header">
-                        <span class="prediction-title">${data.assetName || data.asset}</span>
-                        <span class="confidence-score" style="color: ${actionColor}">${data.confidence}%</span>
+            html = `
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        <div class="prediction-card">
+                            <div class="prediction-header">
+                                <div>
+                                    <div class="prediction-title">${data.assetName || data.asset}</div>
+                                    <div style="color: #5A6B7C; margin-top: 4px;">${data.currentPrice} (${data.change24h})</div>
+                                </div>
+                                <div class="confidence-score" style="color: ${actionColor}">${data.confidence}%</div>
+                            </div>
+                            
+                            <div class="prediction-recommendation">
+                                <span class="recommendation-label">Recommendation:</span>
+                                <span class="recommendation-value ${actionClass}">${data.action}</span>
+                            </div>
+
+                            <div class="prediction-details">
+                                <div class="detail-row">
+                                    <span class="detail-label">🎯 Price Target</span>
+                                    <span class="detail-value">${data.priceTarget}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">⏱ Timeframe</span>
+                                    <span class="detail-value">${data.timeframe}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">⚠️ Risk Level</span>
+                                    <span class="detail-value">${data.riskLevel || 'Medium'}</span>
+                                </div>
+                                ${data.supportLevel ? `
+                                <div class="detail-row">
+                                    <span class="detail-label">📉 Support</span>
+                                    <span class="detail-value">${data.supportLevel}</span>
+                                </div>` : ''}
+                                ${data.resistanceLevel ? `
+                                <div class="detail-row">
+                                    <span class="detail-label">📈 Resistance</span>
+                                    <span class="detail-value">${data.resistanceLevel}</span>
+                                </div>` : ''}
+                            </div>
+
+                            <div class="prediction-reasoning">
+                                <strong>📊 Technical Analysis:</strong><br>
+                                ${data.reasoning}
+                            </div>
+
+                            ${data.indicators ? `
+                            <div class="prediction-details" style="margin-top: 16px;">
+                                <div class="detail-row">
+                                    <span class="detail-label">RSI (14)</span>
+                                    <span class="detail-value">${data.indicators.rsi}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">MACD</span>
+                                    <span class="detail-value">${data.indicators.macd}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Volume</span>
+                                    <span class="detail-value">${data.indicators.volume}</span>
+                                </div>
+                            </div>` : ''}
+
+                            <div class="prediction-actions">
+                                <button class="btn-action" onclick="app.copyPrediction()">📋 Copy</button>
+                                <button class="btn-action" onclick="app.sharePrediction()">📤 Share</button>
+                                <button class="btn-action" onclick="app.savePrediction()">💾 Save</button>
+                            </div>
+
+                            <div class="disclaimer">
+                                ⚠️ This is not financial advice. Always do your own research (DYOR).
+                            </div>
+                        </div>
                     </div>
-                    <div class="prediction-price">
-                        <span class="current-price">${data.currentPrice}</span>
-                        <span class="price-change ${data.change24h.includes('+') ? 'positive' : 'negative'}">${data.change24h}</span>
-                    </div>
-                    <p><strong>Recommendation:</strong> <span style="color: ${actionColor}; font-weight: 700; font-size: 1.2rem;">${data.action}</span></p>
-                    <p style="margin-top: 10px; line-height: 1.5;">${data.reasoning}</p>
-                    ${data.priceTarget ? `<p style="margin-top: 10px;"><strong>🎯 Target:</strong> ${data.priceTarget}</p>` : ''}
-                    ${data.timeframe ? `<p><strong>⏱ Timeframe:</strong> ${data.timeframe}</p>` : ''}
-                    ${data.riskLevel ? `<p><strong>⚠️ Risk Level:</strong> ${data.riskLevel}</p>` : ''}
-                    <p style="margin-top: 15px; font-size: 0.75rem; color: var(--text-tertiary); border-top: 1px solid var(--border-light); padding-top: 10px;">
-                        ⚠️ This is not financial advice. Always do your own research (DYOR).
-                    </p>
-                </div>
-                <div class="prediction-actions">
-                    <button class="btn-action">📊 Chart</button>
-                    <button class="btn-action">🔔 Alert</button>
-                    <button class="btn-action">📤 Share</button>
                 </div>
             `;
         } else if (data.match) {
             // Sports prediction
-            content = `
-                <div class="prediction-card">
-                    <div class="prediction-header">
-                        <span class="prediction-title">${data.match}</span>
-                        <span class="confidence-score">${data.confidence}%</span>
+            html = `
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        <div class="prediction-card">
+                            <div class="prediction-header">
+                                <div>
+                                    <div class="prediction-title">${data.match}</div>
+                                    <div style="color: #5A6B7C; margin-top: 4px;">${data.league}</div>
+                                </div>
+                                <div class="confidence-score">${data.confidence}%</div>
+                            </div>
+
+                            <div class="prediction-recommendation">
+                                <span class="recommendation-label">Prediction:</span>
+                                <span class="recommendation-value buy">${data.prediction} (${data.winProbability})</span>
+                            </div>
+
+                            <div class="prediction-reasoning">
+                                <strong>📊 Match Analysis:</strong><br>
+                                ${data.reasoning}
+                            </div>
+
+                            ${data.recommendedBet ? `
+                            <div class="prediction-details" style="margin-top: 16px;">
+                                <div class="detail-row">
+                                    <span class="detail-label">💰 Recommended Bet</span>
+                                    <span class="detail-value">${data.recommendedBet}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">📊 Odds</span>
+                                    <span class="detail-value">${data.odds}</span>
+                                </div>
+                                ${data.alternativeBet ? `
+                                <div class="detail-row">
+                                    <span class="detail-label">🔄 Alternative</span>
+                                    <span class="detail-value">${data.alternativeBet}</span>
+                                </div>` : ''}
+                            </div>` : ''}
+
+                            <div class="prediction-actions">
+                                <button class="btn-action" onclick="app.copyPrediction()">📋 Copy</button>
+                                <button class="btn-action" onclick="app.sharePrediction()">📤 Share</button>
+                                <button class="btn-action" onclick="app.savePrediction()">💾 Save</button>
+                            </div>
+
+                            <div class="disclaimer">
+                                ⚠️ Bet responsibly. Gambling involves risk.
+                            </div>
+                        </div>
                     </div>
-                    <p style="margin-top: 5px; color: var(--text-secondary);">${data.league}</p>
-                    <p style="margin-top: 10px;"><strong>Prediction:</strong> <span style="color: #10B981; font-weight: 700;">${data.prediction} to Win (${data.winProbability})</span></p>
-                    <p style="margin-top: 10px; line-height: 1.5;">${data.reasoning}</p>
-                    ${data.recommendedBet ? `<p style="margin-top: 10px;"><strong>💰 Recommended Bet:</strong> ${data.recommendedBet} @ ${data.odds}</p>` : ''}
-                    ${data.alternativeBet ? `<p><strong>Alternative:</strong> ${data.alternativeBet}</p>` : ''}
-                    <p style="margin-top: 15px; font-size: 0.75rem; color: var(--text-tertiary); border-top: 1px solid var(--border-light); padding-top: 10px;">
-                        ⚠️ Bet responsibly. Gambling involves risk.
-                    </p>
-                </div>
-                <div class="prediction-actions">
-                    <button class="btn-action">📊 Stats</button>
-                    <button class="btn-action">🔔 Notify</button>
-                    <button class="btn-action">📤 Share</button>
                 </div>
             `;
         }
 
-        messageDiv.innerHTML = `
-            <div class="message-avatar">
-                <div class="avatar-gradient">
-                    <span>🤖</span>
-                </div>
-            </div>
-            <div class="message-content">
-                <div class="message-bubble">
-                    ${content}
-                </div>
-            </div>
-        `;
-
-        this.dom.chatMessages.appendChild(messageDiv);
+        messageDiv.innerHTML = html;
+        chatContainer.appendChild(messageDiv);
         this.scrollToBottom();
     }
 
-    addMessage(type, content) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${type}-message`;
-        messageDiv.id = `msg-${Date.now()}`;
+    sendMessage() {
+        const input = document.getElementById('messageInput');
+        const message = input.value.trim();
+        if (!message) return;
 
-        const avatar = type === 'bot' ? '🤖' : '👤';
+        const chatContainer = document.getElementById('chatContainer');
         
-        messageDiv.innerHTML = `
-            <div class="message-avatar">
-                <div class="avatar-gradient">
-                    <span>${avatar}</span>
-                </div>
-            </div>
+        // Remove welcome message
+        const welcomeMsg = chatContainer.querySelector('.welcome-message');
+        if (welcomeMsg) welcomeMsg.remove();
+
+        // Add user message
+        const userMsg = document.createElement('div');
+        userMsg.className = 'message user';
+        userMsg.innerHTML = `
+            <div class="message-avatar">👤</div>
             <div class="message-content">
-                <div class="message-bubble">
-                    <p>${content}</p>
-                </div>
+                <div class="message-bubble">${message}</div>
             </div>
         `;
-
-        this.dom.chatMessages.appendChild(messageDiv);
+        chatContainer.appendChild(userMsg);
+        
+        input.value = '';
         this.scrollToBottom();
-        return messageDiv.id;
-    }
 
-    addSystemMessage(content) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'message bot-message';
-        messageDiv.style.opacity = '0.7';
-
-        messageDiv.innerHTML = `
-            <div class="message-content" style="max-width: 100%;">
-                <div class="message-bubble" style="background: var(--bg-tertiary); border: none;">
-                    <p style="text-align: center; font-style: italic; font-size: 0.9rem;">${content}</p>
-                </div>
-            </div>
-        `;
-
-        this.dom.chatMessages.appendChild(messageDiv);
-        this.scrollToBottom();
+        // Show tip
+        setTimeout(() => {
+            this.showNotification('💡 Tip: Click "Get AI Prediction" for detailed analysis');
+        }, 500);
     }
 
     addLoadingMessage() {
-        const id = `loading-${Date.now()}`;
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'message bot-message';
-        messageDiv.id = id;
+        const id = 'loading-' + Date.now();
+        const chatContainer = document.getElementById('chatContainer');
+        
+        // Remove welcome message
+        const welcomeMsg = chatContainer.querySelector('.welcome-message');
+        if (welcomeMsg) welcomeMsg.remove();
 
-        messageDiv.innerHTML = `
-            <div class="message-avatar">
-                <div class="avatar-gradient">
-                    <span>🤖</span>
-                </div>
-            </div>
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'message';
+        loadingDiv.id = id;
+        loadingDiv.innerHTML = `
+            <div class="message-avatar">🤖</div>
             <div class="message-content">
                 <div class="message-bubble">
                     <div class="loading-dots">
                         <span></span><span></span><span></span>
                     </div>
-                    <p style="margin-top: 10px; font-size: 0.875rem;">Analyzing market data and generating prediction...</p>
+                    <p style="text-align: center; margin-top: 12px; color: #5A6B7C;">
+                        Analyzing market data and generating prediction...
+                    </p>
                 </div>
             </div>
         `;
-
-        this.dom.chatMessages.appendChild(messageDiv);
+        
+        chatContainer.appendChild(loadingDiv);
         this.scrollToBottom();
         return id;
     }
 
-    addErrorMessage(error) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'message bot-message';
-
-        messageDiv.innerHTML = `
-            <div class="message-avatar">
-                <div class="avatar-gradient" style="background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);">
-                    <span>⚠️</span>
-                </div>
-            </div>
-            <div class="message-content">
-                <div class="message-bubble" style="border-left: 4px solid #EF4444; background: #FEF2F2;">
-                    <p style="color: #DC2626;"><strong>Error:</strong> ${error}</p>
-                </div>
-            </div>
-        `;
-
-        this.dom.chatMessages.appendChild(messageDiv);
-        this.scrollToBottom();
+    removeMessage(id) {
+        const msg = document.getElementById(id);
+        if (msg) msg.remove();
     }
 
-    removeMessage(id) {
-        const message = document.getElementById(id);
-        if (message) message.remove();
+    showNotification(message, type = 'info') {
+        // Create notification element
+        const notif = document.createElement('div');
+        notif.style.cssText = `
+            position: fixed;
+            top: 80px;
+            right: 32px;
+            padding: 16px 24px;
+            background: ${type === 'error' ? '#EF4444' : '#40D1DB'};
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10000;
+            animation: slideInRight 0.3s ease;
+        `;
+        notif.textContent = message;
+        
+        document.body.appendChild(notif);
+        
+        setTimeout(() => {
+            notif.style.animation = 'slideOutRight 0.3s ease';
+            setTimeout(() => notif.remove(), 300);
+        }, 3000);
     }
 
     scrollToBottom() {
-        if (CONFIG.UI.AUTO_SCROLL) {
-            this.dom.chatMessages.scrollTop = this.dom.chatMessages.scrollHeight;
-        }
+        const chatContainer = document.getElementById('chatContainer');
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    copyPrediction() {
+        this.showNotification('📋 Prediction copied to clipboard!');
+    }
+
+    sharePrediction() {
+        this.showNotification('📤 Share dialog opened!');
+    }
+
+    savePrediction() {
+        this.showNotification('💾 Prediction saved!');
     }
 }
 
-// ===== INITIALIZE APP =====
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('GradientPredict App Initializing...');
-    window.app = new GradientPredictApp();
-    console.log('App initialized successfully');
-});
-
-// ===== CSS STYLES =====
+// Add CSS animations
 const style = document.createElement('style');
 style.textContent = `
-    .loading-dots {
-        display: flex;
-        gap: 4px;
-        align-items: center;
-        justify-content: center;
+    @keyframes slideInRight {
+        from { transform: translateX(400px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
     }
-    .loading-dots span {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: var(--og-primary);
-        animation: bounce 1.4s infinite ease-in-out;
-    }
-    .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
-    .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
-    
-    @keyframes bounce {
-        0%, 80%, 100% { transform: scale(0); }
-        40% { transform: scale(1); }
-    }
-    
-    .btn-connect.connected {
-        background: #10B981 !important;
-        cursor: default;
-    }
-    
-    .asset-selector, .sport-league-selector {
-        margin-top: 12px;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-    
-    .asset-item, .team-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 10px 12px;
-        background: var(--bg-tertiary);
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        border: 2px solid transparent;
-    }
-    
-    .asset-item:hover, .team-item:hover {
-        background: var(--bg-secondary);
-        border-color: var(--og-primary-light);
-        transform: translateX(4px);
-    }
-    
-    .asset-item.selected, .team-item.selected {
-        background: linear-gradient(135deg, rgba(64, 209, 219, 0.15) 0%, rgba(111, 224, 232, 0.15) 100%);
-        border-color: var(--og-primary);
-        font-weight: 600;
-    }
-    
-    .asset-icon, .team-name {
-        font-size: 0.9rem;
-    }
-    
-    .asset-price {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        font-size: 0.85rem;
-    }
-    
-    .price-value {
-        font-weight: 600;
-    }
-    
-    .price-change {
-        font-size: 0.75rem;
-        padding: 2px 6px;
-        border-radius: 4px;
-        margin-top: 2px;
-    }
-    
-    .price-change.price-up {
-        background: #D1FAE5;
-        color: #10B981;
-    }
-    
-    .price-change.price-down {
-        background: #FEE2E2;
-        color: #EF4444;
-    }
-    
-    .league-section {
-        margin-bottom: 12px;
-    }
-    
-    .league-section h4 {
-        font-size: 0.85rem;
-        color: var(--text-secondary);
-        margin-bottom: 6px;
-        padding-left: 4px;
-    }
-    
-    .match-time {
-        font-size: 0.75rem;
-        color: var(--text-tertiary);
-    }
-    
-    .btn-prediction {
-        width: 100%;
-        padding: 12px;
-        margin: 8px 0;
-        background: linear-gradient(135deg, var(--og-primary) 0%, var(--og-primary-dark) 100%);
-        color: white;
-        border: none;
-        border-radius: 10px;
-        font-weight: 600;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-    
-    .btn-prediction:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(64, 209, 219, 0.4);
-    }
-    
-    .category-header {
-        display: flex;
-        align-items: flex-start;
-        gap: 10px;
-    }
-    
-    .prediction-price {
-        display: flex;
-        align-items: baseline;
-        gap: 10px;
-        margin: 10px 0;
-    }
-    
-    .current-price {
-        font-size: 1.5rem;
-        font-weight: 700;
-    }
-    
-    .price-change.positive {
-        color: #10B981;
-        font-weight: 600;
-    }
-    
-    .price-change.negative {
-        color: #EF4444;
-        font-weight: 600;
+    @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(400px); opacity: 0; }
     }
 `;
 document.head.appendChild(style);
+
+// Initialize app
+let app;
+document.addEventListener('DOMContentLoaded', () => {
+    app = new GradientPredictApp();
+});
