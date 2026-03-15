@@ -27,7 +27,7 @@
             <!-- Sidebar -->
             <aside class="sidebar">
                 <!-- Crypto Section -->
-                <div class="section" data-section="crypto">
+                <div class="section active" data-section="crypto">
                     <div class="section-header" onclick="app.toggleSection('crypto')">
                         <div class="section-icon">🪙</div>
                         <div class="section-title">
@@ -42,7 +42,7 @@
                     </div>
                     <div class="section-content active" id="crypto-content">
                         <div class="asset-list">
-                            <div class="asset-item" data-asset="BTC" onclick="app.selectAsset('crypto', 'BTC')">
+                            <div class="asset-item selected" data-asset="BTC" onclick="app.selectAsset('crypto', 'BTC')">
                                 <span class="asset-symbol">₿</span>
                                 <span class="asset-name">Bitcoin</span>
                                 <div class="asset-price" id="price-BTC">
@@ -162,6 +162,13 @@
                                     <span class="price">Loading...</span>
                                 </div>
                             </div>
+                            <div class="asset-item" data-asset="COPPER" onclick="app.selectAsset('commodities', 'COPPER')">
+                                <span class="asset-icon">🔧</span>
+                                <span class="asset-name">Copper</span>
+                                <div class="asset-price" id="price-COPPER">
+                                    <span class="price">Loading...</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -183,22 +190,11 @@
                                 <li>Receive detailed analysis with real market data</li>
                             </ol>
                         </div>
-
-                        <div class="examples">
-                            <h4>What you'll get:</h4>
-                            <ul>
-                                <li>📊 Real-time price data and 24h change</li>
-                                <li>🎯 BUY/HOLD/SELL recommendations</li>
-                                <li>📈 Confidence scores (0-100%)</li>
-                                <li>💡 Technical analysis & key levels</li>
-                                <li>⏱ Timeframe & price targets</li>
-                            </ul>
-                        </div>
                     </div>
                 </div>
 
                 <div class="input-area">
-                    <button class="btn-predict" id="getPrediction" onclick="app.getPrediction()">
+                    <button class="btn-predict" id="getPrediction">
                         📊 Get AI Prediction
                     </button>
                     <div class="input-wrapper">
@@ -206,9 +202,8 @@
                             type="text" 
                             id="messageInput" 
                             placeholder="Ask a question or click Get Prediction..."
-                            onkeypress="if(event.key==='Enter') app.sendMessage()"
                         />
-                        <button class="btn-send" onclick="app.sendMessage()">Send</button>
+                        <button class="btn-send" id="sendBtn">Send</button>
                     </div>
                     <select class="model-select" id="modelSelect">
                         <option value="gpt-4o">GPT-4o</option>
