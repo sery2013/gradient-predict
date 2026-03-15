@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GradientPredict - AI Prediction Catalog</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <div class="logo">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                        <rect width="32" height="32" rx="8" fill="#40D1DB"/>
+                        <path d="M16 8L24 24H8L16 8Z" fill="white"/>
+                    </svg>
+                    <h1>GradientPredict</h1>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="wallet-status">
+                    <span class="status-indicator connected">●</span>
+                    <span>Connected</span>
+                </div>
+                <div class="wallet-balance">
+                    <span class="wallet-icon">👛</span>
+                    <span class="balance-label">$OPG</span>
+                    <span class="balance-amount" id="opgBalance">0.00</span>
+                </div>
+                <button class="btn-connect" id="connectWalletBtn">Connect Wallet</button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Sidebar Navigation -->
+            <aside class="sidebar">
+                <div class="chat-category active" data-category="crypto">
+                    <div class="category-icon">🪙</div>
+                    <div class="category-info">
+                        <h3>Crypto Predictions</h3>
+                        <div class="category-tags">
+                            <span class="tag tag-buy">BUY</span>
+                            <span class="tag tag-hold">HOLD</span>
+                            <span class="tag tag-sell">SELL</span>
+                        </div>
+                    </div>
+                    <div class="crypto-icons">
+                        <span class="crypto-icon bitcoin">₿</span>
+                        <span class="crypto-icon ethereum">Ξ</span>
+                        <span class="crypto-icon solstice">◎</span>
+                    </div>
+                </div>
+
+                <div class="chat-category" data-category="sports">
+                    <div class="category-icon">⚽</div>
+                    <div class="category-info">
+                        <h3>Sports Predictions</h3>
+                        <div class="category-tags">
+                            <span class="tag">Premier League</span>
+                            <span class="tag">NHL</span>
+                            <span class="tag">NBA</span>
+                            <span class="tag">ATP</span>
+                        </div>
+                    </div>
+                    <div class="sports-icons">
+                        <span class="sport-icon">⚽</span>
+                        <span class="sport-icon">🏒</span>
+                        <span class="sport-icon">🏀</span>
+                        <span class="sport-icon">🎾</span>
+                    </div>
+                </div>
+
+                <div class="chat-category" data-category="assets">
+                    <div class="category-icon">📈</div>
+                    <div class="category-info">
+                        <h3>Assets & Commodities</h3>
+                        <div class="category-tags">
+                            <span class="tag">Gold</span>
+                            <span class="tag">Oil</span>
+                            <span class="tag">Stocks</span>
+                        </div>
+                    </div>
+                    <div class="assets-icons">
+                        <span class="asset-icon">🥇</span>
+                        <span class="asset-icon">🛢</span>
+                        <span class="asset-icon">📊</span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Chat Area -->
+            <main class="chat-container">
+                <div class="chat-messages" id="chatMessages">
+                    <!-- Welcome Message -->
+                    <div class="message bot-message">
+                        <div class="message-avatar">
+                            <div class="avatar-gradient">
+                                <span>🤖</span>
+                            </div>
+                        </div>
+                        <div class="message-content">
+                            <div class="message-bubble">
+                                <p>Привет! Я ваш AI-помощник для прогнозирования. Выберите категорию слева и задайте вопрос!</p>
+                                <p style="margin-top: 10px;"><strong>Примеры вопросов:</strong></p>
+                                <ul style="margin-left: 20px; margin-top: 5px;">
+                                    <li>Что лучше купить: BTC или ETH?</li>
+                                    <li>Кто выиграет Ман Сити - Реал?</li>
+                                    <li>Прогноз цены золота на Q3</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Area -->
+                <div class="chat-input-container">
+                    <div class="input-wrapper">
+                        <input 
+                            type="text" 
+                            id="messageInput" 
+                            class="message-input" 
+                            placeholder="Ask a prediction..."
+                            autocomplete="off"
+                        />
+                        <button class="btn-send" id="sendBtn">
+                            <span>→</span>
+                            <span>Send</span>
+                        </button>
+                    </div>
+                    <div class="model-selector">
+                        <select id="modelSelect" class="model-select">
+                            <option value="gpt-4o">Model: GPT-4o</option>
+                            <option value="claude-3.5">Claude 3.5</option>
+                            <option value="llama-3-finance">Llama-3-Finance</option>
+                        </select>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/opengradient-sdk.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
