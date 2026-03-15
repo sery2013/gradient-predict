@@ -17,6 +17,8 @@ class GradientPredictApp {
     cacheDOM() {
         this.dom = {
             connectBtn: document.getElementById('connectWalletBtn'),
+            walletStatus: document.getElementById('walletStatus'),
+            walletBalance: document.getElementById('walletBalance'),
             balanceDisplay: document.getElementById('opgBalance'),
             chatMessages: document.getElementById('chatMessages'),
             messageInput: document.getElementById('messageInput'),
@@ -27,19 +29,26 @@ class GradientPredictApp {
     }
 
     bindEvents() {
+        // Wallet connection
         this.dom.connectBtn.addEventListener('click', () => this.connectWallet());
-        
-        this.dom.categories.forEach(category => {
+
+        // Category selection - FIXED: Using proper event delegation
+        this.dom.categories.forEach((category, index) => {
+            category.style.cursor = 'pointer';
             category.addEventListener('click', (e) => {
-                const targetCategory = e.currentTarget.dataset.category;
+                console.log('Category clicked:', index, category.dataset.category);
+                const targetCategory = category.dataset.category;
                 this.switchCategory(targetCategory);
             });
         });
 
+        // Send message
         this.dom.sendBtn.addEventListener('click', () => this.sendMessage());
         this.dom.messageInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.sendMessage();
         });
+
+        console.log('Events bound successfully');
     }
 
     async checkWallet() {
@@ -48,9 +57,7 @@ class GradientPredictApp {
                 const accounts = await window.ethereum.request({ method: 'eth_accounts' });
                 if (accounts.length > 0) {
                     this.isConnected = true;
-                    this.dom.connectBtn.textContent = `${accounts[0].slice(0, 6)}...${accounts[0].slice(-4)}`;
-                    this.dom.connectBtn.disabled = true;
-                    this.updateBalance();
+                    this.updateWalletUI(accounts[0]);
                 }
             } catch (error) {
                 console.error('Check wallet error:', error);
@@ -64,37 +71,58 @@ class GradientPredictApp {
         
         if (result.success) {
             this.isConnected = true;
-            this.dom.connectBtn.textContent = `${result.account.slice(0, 6)}...${result.account.slice(-4)}`;
-            this.dom.connectBtn.disabled = true;
-            this.dom.connectBtn.classList.add('connected');
-            await this.updateBalance();
-            this.addSystemMessage('✅ Кошелёк подключён! Сеть: Base Sepolia Testnet');
-            this.addSystemMessage('💡 Для запросов потребуется подпись транзакции (x402)');
+            this.updateWalletUI(result.account);
+            this.addSystemMessage('✅ Wallet connected successfully!');
+            this.addSystemMessage('💡 Demo mode: No real payments required');
         } else {
-            this.addErrorMessage('Ошибка подключения: ' + result.error);
+            this.addErrorMessage('Connection error: ' + result.error);
         }
     }
 
-    async updateBalance() {
-        const balance = await this.sdk.getOPGBalance();
-        this.dom.balanceDisplay.textContent = balance;
+    updateWalletUI(account) {
+        this.dom.connectBtn.textContent = `${account.slice(0, 6)}...${account.slice(-4)}`;
+        this.dom.connectBtn.disabled = true;
+        this.dom.connectBtn.classList.add('connected');
+        this.dom.walletStatus.style.display = 'flex';
+        this.dom.walletBalance.style.display = 'flex';
+        this.dom.balanceDisplay.textContent = '100.00';
     }
 
-    // ===== CATEGORY SWITCHING =====
+    // ===== CATEGORY SWITCHING - FIXED =====
     switchCategory(category) {
+        console.log('Switching to category:', category);
         this.currentCategory = category;
         
+        // Remove active class from ALL categories
         this.dom.categories.forEach(cat => {
             cat.classList.remove('active');
-            if (cat.dataset.category === category) {
-                cat.classList.add('active');
-            }
         });
+        
+        // Add active class to selected category
+        const selectedCategory = document.getElementById(`category-${category}`);
+        if (selectedCategory) {
+            selectedCategory.classList.add('active');
+            console.log('Active category set:', category);
+        }
 
+        // Add system message
         const categoryName = CONFIG.CATEGORIES[category].name;
         const color = CONFIG.CATEGORIES[category].color;
         
-        this.addSystemMessage(`📊 Переключено на: <span style="color: ${color}">${categoryName}</span>`);
+        this.addSystemMessage(`📊 Switched to: <span style="color: ${color}">${categoryName}</span>`);
+        
+        // Clear chat and show category-specific welcome
+        this.showCategoryWelcome(category);
+    }
+
+    showCategoryWelcome(category) {
+        const welcomes = {
+            crypto: '🪙 Ask me about Bitcoin, Ethereum, or any cryptocurrency!',
+            sports: '⚽ Ask me about football, hockey, basketball, or tennis predictions!',
+            assets: '📈 Ask me about Gold, Oil, Gas, or stock market predictions!'
+        };
+        
+        this.addSystemMessage(welcomes[category] || welcomes.crypto);
     }
 
     // ===== MESSAGING =====
@@ -103,15 +131,18 @@ class GradientPredictApp {
         if (!message) return;
 
         if (!this.isConnected) {
-            this.addErrorMessage('⚠️ Сначала подключите кошелёк!');
+            this.addErrorMessage('⚠️ Please connect your wallet first!');
             return;
         }
 
+        // Add user message
         this.addMessage('user', message);
         this.dom.messageInput.value = '';
 
+        // Show loading
         const loadingId = this.addLoadingMessage();
 
+        // Get prediction
         const selectedModel = this.dom.modelSelect.value;
         
         try {
@@ -126,7 +157,7 @@ class GradientPredictApp {
             if (result.success) {
                 this.addPredictionMessage(result.data);
             } else {
-                this.addErrorMessage(result.error || 'Неизвестная ошибка');
+                this.addErrorMessage(result.error || 'Unknown error occurred');
             }
         } catch (error) {
             this.removeMessage(loadingId);
@@ -195,7 +226,7 @@ class GradientPredictApp {
                     <div class="loading-dots">
                         <span></span><span></span><span></span>
                     </div>
-                    <p style="margin-top: 10px; font-size: 0.875rem;">Обработка запроса через OpenGradient...</p>
+                    <p style="margin-top: 10px; font-size: 0.875rem;">Generating prediction...</p>
                 </div>
             </div>
         `;
@@ -233,19 +264,19 @@ class GradientPredictApp {
                             <span class="prediction-title">${data.prediction}</span>
                             <span class="confidence-score" style="color: ${actionColor}">${data.confidence}%</span>
                         </div>
-                        <p><strong>Рекомендация:</strong> <span style="color: ${actionColor}; font-weight: 700; font-size: 1.1rem;">${data.action}</span></p>
+                        <p><strong>Recommendation:</strong> <span style="color: ${actionColor}; font-weight: 700; font-size: 1.1rem;">${data.action}</span></p>
                         <p style="margin-top: 10px; line-height: 1.5;">${data.reasoning}</p>
-                        ${data.priceTarget ? `<p style="margin-top: 10px;"><strong>🎯 Цель:</strong> ${data.priceTarget}</p>` : ''}
-                        ${data.timeframe ? `<p><strong>⏱ Срок:</strong> ${data.timeframe}</p>` : ''}
-                        ${data.odds ? `<p><strong>📊 Коэффициент:</strong> ${data.odds}</p>` : ''}
+                        ${data.priceTarget ? `<p style="margin-top: 10px;"><strong>🎯 Target:</strong> ${data.priceTarget}</p>` : ''}
+                        ${data.timeframe ? `<p><strong>⏱ Timeframe:</strong> ${data.timeframe}</p>` : ''}
+                        ${data.odds ? `<p><strong>📊 Odds:</strong> ${data.odds}</p>` : ''}
                         <p style="margin-top: 15px; font-size: 0.75rem; color: var(--text-tertiary); border-top: 1px solid var(--border-light); padding-top: 10px;">
-                            ⚠️ Это не финансовая рекомендация. Проводите собственное исследование (DYOR).
+                            ⚠️ This is not financial advice. Always do your own research (DYOR).
                         </p>
                     </div>
                     <div class="prediction-actions">
-                        <button class="btn-action">📊 Детали</button>
-                        <button class="btn-action">🔔 Уведомление</button>
-                        <button class="btn-action">📤 Поделиться</button>
+                        <button class="btn-action">📊 Details</button>
+                        <button class="btn-action">🔔 Notify</button>
+                        <button class="btn-action">📤 Share</button>
                     </div>
                 </div>
             </div>
@@ -267,7 +298,7 @@ class GradientPredictApp {
             </div>
             <div class="message-content">
                 <div class="message-bubble" style="border-left: 4px solid #EF4444; background: #FEF2F2;">
-                    <p style="color: #DC2626;"><strong>Ошибка:</strong> ${error}</p>
+                    <p style="color: #DC2626;"><strong>Error:</strong> ${error}</p>
                 </div>
             </div>
         `;
@@ -290,7 +321,9 @@ class GradientPredictApp {
 
 // ===== INITIALIZE APP =====
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('GradientPredict App Initializing...');
     window.app = new GradientPredictApp();
+    console.log('App initialized successfully');
 });
 
 // ===== LOADING ANIMATION CSS =====
@@ -318,11 +351,20 @@ style.textContent = `
     }
     
     .btn-connect.connected {
-        background: #10B981;
+        background: #10B981 !important;
         cursor: default;
     }
     .btn-connect.connected:hover {
         transform: none;
+    }
+    
+    .chat-category {
+        cursor: pointer !important;
+        user-select: none;
+    }
+    
+    .chat-category:hover {
+        transform: translateY(-2px);
     }
 `;
 document.head.appendChild(style);
