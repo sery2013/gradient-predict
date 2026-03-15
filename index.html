@@ -38,56 +38,138 @@
         <div class="main-content">
             <!-- Sidebar Navigation -->
             <aside class="sidebar">
+                <!-- Crypto Category -->
                 <div class="chat-category active" data-category="crypto" id="category-crypto">
-                    <div class="category-icon">🪙</div>
-                    <div class="category-info">
-                        <h3>Crypto Predictions</h3>
-                        <div class="category-tags">
-                            <span class="tag tag-buy">BUY</span>
-                            <span class="tag tag-hold">HOLD</span>
-                            <span class="tag tag-sell">SELL</span>
+                    <div class="category-header">
+                        <div class="category-icon">🪙</div>
+                        <div class="category-info">
+                            <h3>Crypto Predictions</h3>
+                            <div class="category-tags">
+                                <span class="tag tag-buy">BUY</span>
+                                <span class="tag tag-hold">HOLD</span>
+                                <span class="tag tag-sell">SELL</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="crypto-icons">
-                        <span class="crypto-icon">₿</span>
-                        <span class="crypto-icon">Ξ</span>
-                        <span class="crypto-icon">◎</span>
+                    <div class="asset-selector" id="cryptoSelector">
+                        <div class="asset-item selected" data-asset="BTC" data-symbol="bitcoin">
+                            <span class="asset-icon">₿</span>
+                            <span class="asset-name">Bitcoin</span>
+                            <span class="asset-price" id="price-BTC">Loading...</span>
+                        </div>
+                        <div class="asset-item" data-asset="ETH" data-symbol="ethereum">
+                            <span class="asset-icon">Ξ</span>
+                            <span class="asset-name">Ethereum</span>
+                            <span class="asset-price" id="price-ETH">Loading...</span>
+                        </div>
+                        <div class="asset-item" data-asset="SOL" data-symbol="solana">
+                            <span class="asset-icon">◎</span>
+                            <span class="asset-name">Solana</span>
+                            <span class="asset-price" id="price-SOL">Loading...</span>
+                        </div>
+                        <div class="asset-item" data-asset="BNB" data-symbol="binancecoin">
+                            <span class="asset-icon">B</span>
+                            <span class="asset-name">BNB</span>
+                            <span class="asset-price" id="price-BNB">Loading...</span>
+                        </div>
+                        <div class="asset-item" data-asset="XRP" data-symbol="ripple">
+                            <span class="asset-icon">X</span>
+                            <span class="asset-name">XRP</span>
+                            <span class="asset-price" id="price-XRP">Loading...</span>
+                        </div>
                     </div>
                 </div>
 
+                <!-- Sports Category -->
                 <div class="chat-category" data-category="sports" id="category-sports">
-                    <div class="category-icon">⚽</div>
-                    <div class="category-info">
-                        <h3>Sports Predictions</h3>
-                        <div class="category-tags">
-                            <span class="tag">Premier League</span>
-                            <span class="tag">NHL</span>
-                            <span class="tag">NBA</span>
-                            <span class="tag">ATP</span>
+                    <div class="category-header">
+                        <div class="category-icon">⚽</div>
+                        <div class="category-info">
+                            <h3>Sports Predictions</h3>
                         </div>
                     </div>
-                    <div class="sports-icons">
-                        <span class="sport-icon">⚽</span>
-                        <span class="sport-icon">🏒</span>
-                        <span class="sport-icon">🏀</span>
-                        <span class="sport-icon">🎾</span>
+                    <div class="sport-league-selector" id="sportSelector">
+                        <div class="league-section">
+                            <h4>⚽ Football</h4>
+                            <div class="team-item selected" data-match="Man City vs Real Madrid" data-league="UCL">
+                                <span class="team-name">Man City - Real Madrid</span>
+                                <span class="match-time">Today 20:00</span>
+                            </div>
+                            <div class="team-item" data-match="Arsenal vs Bayern" data-league="UCL">
+                                <span class="team-name">Arsenal - Bayern</span>
+                                <span class="match-time">Today 20:00</span>
+                            </div>
+                            <div class="team-item" data-match="Liverpool vs Chelsea" data-league="EPL">
+                                <span class="team-name">Liverpool - Chelsea</span>
+                                <span class="match-time">Tomorrow 17:30</span>
+                            </div>
+                        </div>
+                        <div class="league-section">
+                            <h4>🏒 Hockey (NHL)</h4>
+                            <div class="team-item" data-match="Bruins vs Rangers" data-league="NHL">
+                                <span class="team-name">Bruins - Rangers</span>
+                                <span class="match-time">Today 19:00</span>
+                            </div>
+                            <div class="team-item" data-match="Maple Leafs vs Panthers" data-league="NHL">
+                                <span class="team-name">Maple Leafs - Panthers</span>
+                                <span class="match-time">Today 19:30</span>
+                            </div>
+                        </div>
+                        <div class="league-section">
+                            <h4>🏀 Basketball (NBA)</h4>
+                            <div class="team-item" data-match="Lakers vs Warriors" data-league="NBA">
+                                <span class="team-name">Lakers - Warriors</span>
+                                <span class="match-time">Tomorrow 03:00</span>
+                            </div>
+                            <div class="team-item" data-match="Celtics vs Bucks" data-league="NBA">
+                                <span class="team-name">Celtics - Bucks</span>
+                                <span class="match-time">Tomorrow 00:30</span>
+                            </div>
+                        </div>
+                        <div class="league-section">
+                            <h4>🎾 Tennis (ATP)</h4>
+                            <div class="team-item" data-match="Djokovic vs Alcaraz" data-league="ATP">
+                                <span class="team-name">Djokovic - Alcaraz</span>
+                                <span class="match-time">Today 14:00</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
+                <!-- Assets Category -->
                 <div class="chat-category" data-category="assets" id="category-assets">
-                    <div class="category-icon">📈</div>
-                    <div class="category-info">
-                        <h3>Assets & Commodities</h3>
-                        <div class="category-tags">
-                            <span class="tag">Gold</span>
-                            <span class="tag">Oil</span>
-                            <span class="tag">Stocks</span>
+                    <div class="category-header">
+                        <div class="category-icon">📈</div>
+                        <div class="category-info">
+                            <h3>Assets & Commodities</h3>
                         </div>
                     </div>
-                    <div class="assets-icons">
-                        <span class="asset-icon">🥇</span>
-                        <span class="asset-icon">🛢</span>
-                        <span class="asset-icon">📊</span>
+                    <div class="asset-selector" id="commoditySelector">
+                        <div class="asset-item selected" data-asset="Gold" data-symbol="XAU">
+                            <span class="asset-icon">🥇</span>
+                            <span class="asset-name">Gold</span>
+                            <span class="asset-price" id="price-GOLD">Loading...</span>
+                        </div>
+                        <div class="asset-item" data-asset="Silver" data-symbol="XAG">
+                            <span class="asset-icon">🥈</span>
+                            <span class="asset-name">Silver</span>
+                            <span class="asset-price" id="price-SILVER">Loading...</span>
+                        </div>
+                        <div class="asset-item" data-asset="Oil" data-symbol="WTI">
+                            <span class="asset-icon">🛢</span>
+                            <span class="asset-name">Crude Oil (WTI)</span>
+                            <span class="asset-price" id="price-OIL">Loading...</span>
+                        </div>
+                        <div class="asset-item" data-asset="Gas" data-symbol="NG">
+                            <span class="asset-icon">🔥</span>
+                            <span class="asset-name">Natural Gas</span>
+                            <span class="asset-price" id="price-GAS">Loading...</span>
+                        </div>
+                        <div class="asset-item" data-asset="Copper" data-symbol="HG">
+                            <span class="asset-icon">🔧</span>
+                            <span class="asset-name">Copper</span>
+                            <span class="asset-price" id="price-COPPER">Loading...</span>
+                        </div>
                     </div>
                 </div>
             </aside>
@@ -103,12 +185,13 @@
                         </div>
                         <div class="message-content">
                             <div class="message-bubble">
-                                <p>Hello! I'm your AI prediction assistant. Select a category from the left and ask your question!</p>
-                                <p style="margin-top: 10px;"><strong>Example questions:</strong></p>
+                                <p>Hello! I'm your AI prediction assistant. Select an asset from the left and ask for a prediction!</p>
+                                <p style="margin-top: 10px;"><strong>Quick start:</strong></p>
                                 <ul style="margin-left: 20px; margin-top: 5px;">
-                                    <li>Should I buy BTC or ETH?</li>
-                                    <li>Who will win: Man City vs Real Madrid?</li>
-                                    <li>Gold price forecast for Q3</li>
+                                    <li>Click on Bitcoin, Ethereum, or any crypto</li>
+                                    <li>Select a sports match</li>
+                                    <li>Choose Gold, Oil, or other commodities</li>
+                                    <li>Click "Get Prediction" button</li>
                                 </ul>
                             </div>
                         </div>
@@ -122,7 +205,7 @@
                             type="text" 
                             id="messageInput" 
                             class="message-input" 
-                            placeholder="Ask a prediction..."
+                            placeholder="Ask for a prediction or click Get Prediction..."
                             autocomplete="off"
                         />
                         <button class="btn-send" id="sendBtn">
@@ -130,6 +213,9 @@
                             <span>Send</span>
                         </button>
                     </div>
+                    <button class="btn-prediction" id="predictionBtn">
+                        📊 Get AI Prediction
+                    </button>
                     <div class="model-selector">
                         <select id="modelSelect" class="model-select">
                             <option value="gpt-4o">Model: GPT-4o</option>
